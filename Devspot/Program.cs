@@ -1,4 +1,7 @@
+using Devspot.Constants;
 using Devspot.Data;
+using Devspot.Models;
+using Devspot.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +25,8 @@ namespace Devspot
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            builder.Services.AddScoped<IRepository<JobPosting>, JobPostingRepository>();
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
@@ -35,10 +40,19 @@ namespace Devspot
                 app.UseHsts();
             }
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                RoleSeeder.SeedRolesAsync(services).Wait();
+                UserSeeder.SeedUsersAsync(services).Wait();
+            }
+
             app.UseHttpsRedirection();
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.MapRazorPages();
 
             app.MapStaticAssets();
             app.MapControllerRoute(
