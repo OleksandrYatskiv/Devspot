@@ -16,9 +16,7 @@ namespace DevSpot.Tests
 
         public JobPostingRepositoryTests()
         {
-            _options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase("JobPostingDb")
-                .Options;
+            _options = new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase("JobPostingDb").Options;
         }
 
         private ApplicationDbContext CreateDbContext() => new ApplicationDbContext(_options);
@@ -58,9 +56,7 @@ namespace DevSpot.Tests
         public async Task GetByIdAsync_ShouldReturnJobPosting()
         {
             var db = CreateDbContext();
-            
             var repository = new JobPostingRepository(db);
-
             var jobPosting = new JobPosting
             {
                 Title = "Test Title",
@@ -70,11 +66,93 @@ namespace DevSpot.Tests
                 PostedDate = DateTime.Now,
                 UserId = "testUserId"
             };
-
             await db.JobPostings.AddAsync(jobPosting);
             await db.SaveChangesAsync();
+            var result = await repository.GetByIdAsync(jobPosting.Id);
+            Assert.NotNull((result));
+            Assert.Equal("Test Title", result.Title);
+        }
 
-            var result = repository.GetByIdAsync(jobPosting.Id);
+        [Fact]
+        public async Task GetById_ShouldThrowNotFoundException()
+        {
+            var db = CreateDbContext();
+            var repository = new JobPostingRepository(db);
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.GetByIdAsync(999));
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnAllJobPostings()
+        {
+            var db = CreateDbContext();
+            var repository = new JobPostingRepository(db);
+            var jobPosting = new JobPosting
+            {
+                Title = "Test Title",
+                Description = "Test Description",
+                Company = "Test Company",
+                Location = "Test Location",
+                PostedDate = DateTime.Now,
+                UserId = "testUserId"
+            };
+            var jobPosting2 = new JobPosting
+            {
+                Title = "Test Title2",
+                Description = "Test Description2",
+                Company = "Test Company2",
+                Location = "Test Location2",
+                PostedDate = DateTime.Now,
+                UserId = "testUserId2"
+            };
+            await db.JobPostings.AddRangeAsync(jobPosting, jobPosting2);
+            await db.SaveChangesAsync();
+            var result = await repository.GetAllAsync();
+            Assert.NotNull(result);
+            Assert.True(result.Count() >= 2);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ShouldUpdateJobPosting()
+        {
+            var db = CreateDbContext();
+            var repository = new JobPostingRepository(db);
+            var jobPosting = new JobPosting
+            {
+                Title = "Test Title",
+                Description = "Test Description",
+                Company = "Test Company",
+                Location = "Test Location",
+                PostedDate = DateTime.Now,
+                UserId = "testUserId"
+            };
+            await db.JobPostings.AddAsync(jobPosting);
+            await db.SaveChangesAsync();
+            jobPosting.Description = "Updated Description";
+            await repository.UpdateAsync(jobPosting);
+            var result = await db.JobPostings.FindAsync(jobPosting.Id);
+            Assert.NotNull(result);
+            Assert.Equal("Updated Description", result.Description);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ShouldDeleteJobPosting()
+        {
+            var db = CreateDbContext();
+            var repository = new JobPostingRepository(db);
+            var jobPosting = new JobPosting
+            {
+                Title = "Test Title",
+                Description = "Test Description",
+                Company = "Test Company",
+                Location = "Test Location",
+                PostedDate = DateTime.Now,
+                UserId = "testUserId"
+            };
+            await db.JobPostings.AddAsync(jobPosting);
+            await db.SaveChangesAsync();
+            await repository.DeleteAsync(jobPosting.Id);
+            var result = await db.JobPostings.ToListAsync();
+            Assert.DoesNotContain(result, jp => jp.Id == jobPosting.Id);
         }
     }
 }

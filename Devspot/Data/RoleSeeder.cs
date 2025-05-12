@@ -8,8 +8,7 @@ namespace Devspot.Data
         public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-            if (! await roleManager.RoleExistsAsync(Roles.Admin))
+            if (!await roleManager.RoleExistsAsync(Roles.Admin))
             {
                 await roleManager.CreateAsync(new IdentityRole(Roles.Admin));
             }

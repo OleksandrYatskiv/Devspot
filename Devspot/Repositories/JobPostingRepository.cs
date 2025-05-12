@@ -23,7 +23,6 @@ namespace Devspot.Repositories
         public async Task DeleteAsync(int id)
         {
             var jobPosting = await _context.JobPostings.FindAsync(id);
-
             if (jobPosting == null)
             {
                 throw new KeyNotFoundException();
@@ -41,11 +40,11 @@ namespace Devspot.Repositories
         public async Task<JobPosting> GetByIdAsync(int id)
         {
             var jobPosting = await _context.JobPostings.FindAsync(id);
-
             if (jobPosting == null)
             {
                 throw new KeyNotFoundException();
             }
+
             return jobPosting;
         }
 
